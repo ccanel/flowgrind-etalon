@@ -912,7 +912,7 @@ void init_flow(struct flow* flow, int is_source)
 
 	flow->addr = 0;
 
-  flow->total_blocks_written[READ] = flow_total_blocks_written[WRITE] = 0;
+  flow->total_blocks_written[READ] = flow->total_blocks_written[WRITE] = 0;
 
 	foreach(int *i, INTERVAL, FINAL) {
 		flow->statistics[*i].bytes_read = 0;
