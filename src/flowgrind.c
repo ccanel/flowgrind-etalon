@@ -2076,7 +2076,7 @@ static void print_final_report(unsigned short flow_id, enum endpoint_t e)
 	double real_write = settings->duration[WRITE] + delta_write;
 	double real_read = settings->duration[READ] + delta_read;
 	if (settings->duration[WRITE])
-		asprintf_append(&buf, "duration = %.3f/%.3f [s] (real/req), ",
+		asprintf_append(&buf, "duration = %.9f/%.9f [s] (real/req), ",
 				real_write, settings->duration[WRITE]);
 	if (settings->delay[WRITE])
 		asprintf_append(&buf, "write delay = %.3f [s], ",
