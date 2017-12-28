@@ -770,6 +770,11 @@ static void process_select(fd_set *rfds, fd_set *wfds, fd_set *efds)
 					DEBUG_MSG(LOG_ERR, "write_data() failed");
 					goto remove;
 				}
+      if (flow->total_blocks_written[flow->endpoint] >=
+          flow->settings.total_blocks[flow->endpoint]) {
+        DEBUG_MSG(LOG_ERR, "sent all requested blocks");
+        goto remove;
+      }
 
 			if (FD_ISSET(flow->fd, rfds))
 				if (read_data(flow) == -1) {
@@ -907,6 +912,8 @@ void init_flow(struct flow* flow, int is_source)
 
 	flow->addr = 0;
 
+  flow->total_blocks_written[READ] = flow_total_blocks_written[WRITE] = 0;
+
 	foreach(int *i, INTERVAL, FINAL) {
 		flow->statistics[*i].bytes_read = 0;
 		flow->statistics[*i].bytes_written = 0;
@@ -1007,6 +1014,8 @@ static int write_data(struct flow *flow)
 
 			foreach(int *i, INTERVAL, FINAL)
 				flow->statistics[*i].request_blocks_written++;
+
+      flow->total_blocks_written[WRITE]++;
 
 			interpacket_gap = next_interpacket_gap(flow);
 
@@ -1364,6 +1373,8 @@ static void send_response(struct flow* flow, int requested_response_block_size)
 				gettime(&flow->last_block_written);
 				foreach(int *i, INTERVAL, FINAL)
 					flow->statistics[*i].response_blocks_written++;
+
+        flow->total_blocks_written[READ]++;
 				break;
 			}
 		}

@@ -108,6 +108,8 @@ struct flow
 	unsigned real_listen_send_buffer_size;
 	unsigned real_listen_receive_buffer_size;
 
+  int total_blocks_written[2];
+
 	char connect_called;
 	char finished[2];
 

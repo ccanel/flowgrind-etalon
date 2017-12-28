@@ -252,6 +252,8 @@ struct cflow {
 	char summarize_only;
 	/** Enumerate bytes in payload instead of sending zeros (option -E). */
 	char byte_counting;
+  /** Total number of blocks to send before stopping (options -Z and -X). */
+  int total_blocks[2];
 	/** Random seed for stochastic traffic generation (option -J). */
 	unsigned random_seed;
 

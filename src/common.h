@@ -228,6 +228,9 @@ struct flow_settings {
 	/** Enumerate bytes in payload instead of sending zeros (option -E). */
 	int byte_counting;
 
+  /** Total number of blocks to send before stopping (options -Z and -X). */
+  int total_blocks[2];
+
 	/** Sets SO_DEBUG on test socket (option -O). */
 	int cork;
 	/** Disable nagle algorithm on test socket (option -O). */

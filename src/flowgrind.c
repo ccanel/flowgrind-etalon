@@ -535,6 +535,8 @@ static void init_flow_options(void)
 		cflow[id].late_connect = 0;
 		cflow[id].shutdown = 0;
 		cflow[id].byte_counting = 0;
+		cflow[id].total_blocks[0] = 0;
+		cflow[id].total_blocks[1] = 0;
 		cflow[id].random_seed = 0;
 
 		int data = open("/dev/urandom", O_RDONLY);
@@ -1025,7 +1027,7 @@ static void prepare_flow(int id, xmlrpc_client *rpc_client)
 		"{s:i,s:d,s:d}" /* request */
 		"{s:i,s:d,s:d}" /* response */
 		"{s:i,s:d,s:d}" /* interpacket_gap */
-		"{s:b,s:b,s:i,s:i}"
+		"{s:b,s:b,s:b,s:b,s:i,s:i}"
 		"{s:s}"
 		"{s:i,s:i,s:i,s:i,s:i}"
 		"{s:s}"
@@ -1071,6 +1073,8 @@ static void prepare_flow(int id, xmlrpc_client *rpc_client)
 
 	"flow_control", cflow[id].settings[DESTINATION].flow_control,
 		"byte_counting", cflow[id].byte_counting,
+    "total_request_blocks", cflow[id].total_blocks[SOURCE],
+    "total_response_blocks", cflow[id].total_blocks[DESTINATION],
 		"cork", (int)cflow[id].settings[DESTINATION].cork,
 		"nonagle", cflow[id].settings[DESTINATION].nonagle,
 
@@ -1130,7 +1134,7 @@ static void prepare_flow(int id, xmlrpc_client *rpc_client)
 		"{s:i,s:d,s:d}" /* request */
 		"{s:i,s:d,s:d}" /* response */
 		"{s:i,s:d,s:d}" /* interpacket_gap */
-		"{s:b,s:b,s:i,s:i}"
+		"{s:b,s:b,s:b,s:b,s:i,s:i}"
 		"{s:s}"
 		"{s:i,s:i,s:i,s:i,s:i}"
 		"{s:s}"
@@ -1178,6 +1182,8 @@ static void prepare_flow(int id, xmlrpc_client *rpc_client)
 
 		"flow_control", cflow[id].settings[SOURCE].flow_control,
 		"byte_counting", cflow[id].byte_counting,
+    "total_request_blocks", cflow[id].total_blocks[SOURCE],
+    "total_response_blocks", cflow[id].total_blocks[DESTINATION],
 		"cork", (int)cflow[id].settings[SOURCE].cork,
 		"nonagle", (int)cflow[id].settings[SOURCE].nonagle,
 
@@ -2624,6 +2630,16 @@ static void parse_flow_option(int code, const char* arg, const char* opt_string,
 	case 'E':
 		cflow[flow_id].byte_counting = 1;
 		break;
+  case 'Z':
+		if (sscanf(arg, "%u", &optunsigned) != 1)
+			PARSE_ERR("option %s needs an integer argument",
+				  opt_string);
+		cflow[flow_id].total_blocks[WRITE] = optunsigned;
+  case 'X':
+		if (sscanf(arg, "%u", &optunsigned) != 1)
+			PARSE_ERR("option %s needs an integer argument",
+				  opt_string);
+		cflow[flow_id].total_blocks[READ] = optunsigned;
 	case 'I':
 		SHOW_COLUMNS(COL_DLY_MIN, COL_DLY_AVG, COL_DLY_MAX);
 		break;

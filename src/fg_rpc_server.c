@@ -92,7 +92,7 @@ static xmlrpc_value * add_flow_source(xmlrpc_env * const env,
 		"{s:i,s:d,s:d,*}" /* request */
 		"{s:i,s:d,s:d,*}" /* response */
 		"{s:i,s:d,s:d,*}" /* interpacket_gap */
-		"{s:b,s:b,s:i,s:i,*}"
+		"{s:b,s:b,s:b,s:b,s:i,s:i,*}"
 		"{s:s,*}"
 		"{s:i,s:i,s:i,s:i,s:i,*}"
 		"{s:s,*}" /* for LIBPCAP dumps */
@@ -139,6 +139,8 @@ static xmlrpc_value * add_flow_source(xmlrpc_env * const env,
 
 		"flow_control", &settings.flow_control,
 		"byte_counting", &settings.byte_counting,
+    "total_request_blocks", &settings.total_blocks[WRITE],
+    "total_response_blocks", &settings.total_blocks[READ],
 		"cork", &settings.cork,
 		"nonagle", &settings.nonagle,
 
@@ -305,7 +307,7 @@ static xmlrpc_value * add_flow_destination(xmlrpc_env * const env,
 		"{s:i,s:d,s:d,*}" /* request */
 		"{s:i,s:d,s:d,*}" /* response */
 		"{s:i,s:d,s:d,*}" /* interpacket_gap */
-		"{s:b,s:b,s:i,s:i,*}"
+		"{s:b,s:b,s:b,s:b,s:i,s:i,*}"
 		"{s:s,*}"
 		"{s:i,s:i,s:i,s:i,s:i,*}"
 		"{s:s,*}" /* For libpcap dumps */
@@ -351,6 +353,8 @@ static xmlrpc_value * add_flow_destination(xmlrpc_env * const env,
 
 		"flow_control", &settings.flow_control,
 		"byte_counting", &settings.byte_counting,
+    "total_request_blocks", &settings.total_blocks[WRITE],
+    "total_response_blocks", &settings.total_blocks[READ],
 		"cork", &settings.cork,
 		"nonagle", &settings.nonagle,
 
