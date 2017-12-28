@@ -92,7 +92,7 @@ static xmlrpc_value * add_flow_source(xmlrpc_env * const env,
 		"{s:i,s:d,s:d,*}" /* request */
 		"{s:i,s:d,s:d,*}" /* response */
 		"{s:i,s:d,s:d,*}" /* interpacket_gap */
-		"{s:b,s:b,s:b,s:b,s:i,s:i,*}"
+		"{s:b,s:b,s:i,s:i,s:i,s:i,*}"
 		"{s:s,*}"
 		"{s:i,s:i,s:i,s:i,s:i,*}"
 		"{s:s,*}" /* for LIBPCAP dumps */
@@ -307,7 +307,7 @@ static xmlrpc_value * add_flow_destination(xmlrpc_env * const env,
 		"{s:i,s:d,s:d,*}" /* request */
 		"{s:i,s:d,s:d,*}" /* response */
 		"{s:i,s:d,s:d,*}" /* interpacket_gap */
-		"{s:b,s:b,s:b,s:b,s:i,s:i,*}"
+		"{s:b,s:b,s:i,s:i,s:i,s:i,*}"
 		"{s:s,*}"
 		"{s:i,s:i,s:i,s:i,s:i,*}"
 		"{s:s,*}" /* For libpcap dumps */

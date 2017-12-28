@@ -1027,7 +1027,7 @@ static void prepare_flow(int id, xmlrpc_client *rpc_client)
 		"{s:i,s:d,s:d}" /* request */
 		"{s:i,s:d,s:d}" /* response */
 		"{s:i,s:d,s:d}" /* interpacket_gap */
-		"{s:b,s:b,s:b,s:b,s:i,s:i}"
+		"{s:b,s:b,s:i,s:i,s:i,s:i}"
 		"{s:s}"
 		"{s:i,s:i,s:i,s:i,s:i}"
 		"{s:s}"
@@ -1134,7 +1134,7 @@ static void prepare_flow(int id, xmlrpc_client *rpc_client)
 		"{s:i,s:d,s:d}" /* request */
 		"{s:i,s:d,s:d}" /* response */
 		"{s:i,s:d,s:d}" /* interpacket_gap */
-		"{s:b,s:b,s:b,s:b,s:i,s:i}"
+		"{s:b,s:b,s:i,s:i,s:i,s:i}"
 		"{s:s}"
 		"{s:i,s:i,s:i,s:i,s:i}"
 		"{s:s}"
@@ -2943,6 +2943,8 @@ static void parse_cmdline(int argc, char *argv[])
 		{'U', 0, ap_yes, OPT_FLOW_ENDPOINT, 0},
 		{'W', 0, ap_yes, OPT_FLOW_ENDPOINT, 0},
 		{'Y', 0, ap_yes, OPT_FLOW_ENDPOINT, 0},
+		{'X', 0, ap_yes, OPT_FLOW, 0},
+		{'Z', 0, ap_yes, OPT_FLOW, 0},
 		{0, 0, ap_no, 0, 0}
 	};
 
