@@ -706,7 +706,7 @@ static void check_version(xmlrpc_client *rpc_client)
 
 	if (mismatch) {
 		warnx("our version is %s\n\nContinuing in 5 seconds", FLOWGRIND_VERSION);
-		/* sleep(5); */
+		sleep(5);
 	}
 }
 
