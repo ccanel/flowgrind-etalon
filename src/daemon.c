@@ -766,16 +766,19 @@ static void process_select(fd_set *rfds, fd_set *wfds, fd_set *efds)
 				}
 			}
 			if (FD_ISSET(flow->fd, wfds))
+			  if (!flow->settings.total_blocks[flow->endpoint] ||
+			      flow->total_blocks_written[flow->endpoint] <
+			      flow->settings.total_blocks[flow->endpoint]) {
 				if (write_data(flow) == -1) {
 					DEBUG_MSG(LOG_ERR, "write_data() failed");
 					goto remove;
 				}
-			if (flow->settings.total_blocks[flow->endpoint] &&
-			    flow->total_blocks_written[flow->endpoint] >=
-			    flow->settings.total_blocks[flow->endpoint]) {
-			  logging(LOG_NOTICE, "sent all requested blocks\n");
-			  goto remove;
-			}
+			/* if (flow->settings.total_blocks[flow->endpoint] && */
+			/*     flow->total_blocks_written[flow->endpoint] >= */
+			/*     flow->settings.total_blocks[flow->endpoint]) { */
+			/*   logging(LOG_NOTICE, "sent all requested blocks\n"); */
+			/*   goto remove; */
+			/* } */
 
 			if (FD_ISSET(flow->fd, rfds))
 				if (read_data(flow) == -1) {
@@ -1197,8 +1200,12 @@ static int read_data(struct flow *flow)
 				/* send response if requested */
 				if (requested_response_block_size >=
 				    (signed)MIN_BLOCK_SIZE && !flow->finished[READ])
+				  if (!flow->settings.total_blocks[flow->endpoint] ||
+				      flow->total_blocks_written[flow->endpoint] <
+				      flow->settings.total_blocks[flow->endpoint]) {
 					send_response(flow,
 						      requested_response_block_size);
+				  }
 			}
 		}
 		if (!flow->settings.pushy)
