@@ -770,7 +770,7 @@ static void process_select(fd_set *rfds, fd_set *wfds, fd_set *efds)
 					DEBUG_MSG(LOG_ERR, "write_data() failed");
 					goto remove;
 				}
-			printf("total = %d, requested = %d\n", flow->total_blocks_written[flow->endpoint], flow->settings.total_blocks[flow->endpoint]);
+			logging(LOG_NOTICE, "total = %d, requested = %d\n", flow->total_blocks_written[flow->endpoint], flow->settings.total_blocks[flow->endpoint]);
       if (flow->settings.total_blocks[flow->endpoint] &&
 	  flow->total_blocks_written[flow->endpoint] >=
           flow->settings.total_blocks[flow->endpoint]) {
