@@ -531,7 +531,18 @@ static void report_flow(struct flow* flow, int type)
 	else
 		report->begin = flow->first_report_time;
 
-	gettime(&report->end);
+	if (type == INTERVAL)
+	  gettime(&report->end);
+	else {
+	  long long lbr = flow->last_block_read.tv_nsec +
+	    flow->last_block_read.tv_sec * pow(10, 9);
+	  long long lbw = flow->last_block_written.tv_nsec +
+	    flow->last_block_written.tv_sec * pow(10, 9);
+	  if (lbr > lbw)
+	    report->end = flow->last_block_read;
+	  else
+	    report->end = flow->last_block_written;
+	}
 	flow->last_report_time = report->end;
 
 	/* abort if we were scheduled way to early for a interval report */
