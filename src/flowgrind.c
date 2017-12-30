@@ -3128,6 +3128,50 @@ static void sanity_check(void)
 
 int main(int argc, char *argv[])
 {
+	if (argc == 3) {
+	  if (!strcmp(argv[1], "--configure")) {
+	    FILE *fp = fopen(argv[2], "r");
+	    if (fp) {
+	      fseek(fp, 0, SEEK_END);
+	      int string_size = ftell(fp);
+	      rewind(fp);
+
+	      char *buffer = (char *)malloc(sizeof(char) * (string_size + 1));
+
+	      int read_size = fread(buffer, sizeof(char), string_size, fp);
+	      buffer[string_size] = '\0';
+
+	      if (string_size != read_size) {
+		free(buffer);
+		buffer = NULL;
+	      }
+
+	      fclose(fp);
+
+	      if (buffer) {
+		char *buffer_copy = (char *)malloc(sizeof(char) * strlen(buffer));
+		strcpy(buffer_copy, buffer);
+		int new_argc = 1;
+		char *pch = strtok(buffer, " \n");
+		while (pch) {
+		  new_argc++;
+		  pch = strtok(NULL, " \n");
+		}
+		char **new_argv = (char **)malloc(sizeof(char *) * new_argc);
+		pch = strtok(buffer_copy, " \n");
+		new_argv[0] = argv[0];
+		int i = 1;
+		while (pch) {
+		  new_argv[i] = pch;
+		  pch = strtok(NULL, " \n");
+		}
+		argc = new_argc;
+		argv = new_argv;
+	      }
+	    }
+	  }
+	}
+
 	struct sigaction sa;
 	sa.sa_handler = sighandler;
 	sa.sa_flags = 0;
