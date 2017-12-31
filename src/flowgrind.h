@@ -177,7 +177,7 @@ enum long_opt_only {
 /** Controller options. */
 struct controller_options {
 	/** Number of test flows (option -n). */
-	unsigned short num_flows;
+	unsigned int num_flows;
 	/** Length of reporting interval, in seconds (option -i). */
 	double reporting_interval;
 	/** Write output to screen (option -q). */

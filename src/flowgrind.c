@@ -116,7 +116,7 @@ static struct arg_parser parser;
 static struct controller_options copt;
 
 /** Infos about all flows including flow options. */
-static struct cflow cflow[MAX_FLOWS_CONTROLLER];
+static struct cflow *cflow;
 
 /** Command line option parser. */
 static struct arg_parser parser;
@@ -483,10 +483,10 @@ static void init_controller_options(void)
  * final report for both source and destination daemon 
  * in the flow.
  */
-static void init_flow_options(void)
+static void init_flow_options(int num_flows)
 {
-	for (int id = 0; id < MAX_FLOWS_CONTROLLER; id++) {
-
+        cflow = (struct cflow *)malloc(sizeof(struct cflow) * num_flows);
+	for (int id = 0; id < num_flows; id++) {
 		cflow[id].proto = PROTO_TCP;
 
 		foreach(int *i, SOURCE, DESTINATION) {
@@ -2775,7 +2775,7 @@ static void parse_general_option(int code, const char* arg, const char* opt_stri
 		column_info[COL_THROUGH].header.unit = " [MiB/s]";
 		break;
 	case 'n':
-		if (sscanf(arg, "%hd", &copt.num_flows) != 1 ||
+		if (sscanf(arg, "%u", &copt.num_flows) != 1 ||
 			   copt.num_flows > MAX_FLOWS_CONTROLLER)
 			PARSE_ERR("option %s (number of flows) must be within "
 				  "[1..%d]", opt_string, MAX_FLOWS_CONTROLLER);
@@ -2896,11 +2896,11 @@ static void parse_multi_endpoint_option(int code, const char* arg,
  * @param[in] argc number of arguments (as in main())
  * @param[in] argv array of argument strings (as in main())
  */
-static void parse_cmdline(int argc, char *argv[])
+static void parse_cmdline(int argc, char *argv[], int num_flows)
 {
 	int rc = 0;
 	int cur_num_flows = 0;
-	int current_flow_ids[MAX_FLOWS_CONTROLLER];
+	int *current_flow_ids = (int *)malloc(sizeof(int)*num_flows);;
 	int max_flow_specifier = 0;
 	int optint = 0;
 
@@ -2955,14 +2955,14 @@ static void parse_cmdline(int argc, char *argv[])
 
 	/* initialize 4 mutex contexts (for SOURCE+DESTINATION+CONTROLLER+BOTH ENDPOINTS) */
 	struct ap_Mutex_state ms[4];
-	foreach(int *i, MUTEX_CONTEXT_CONTROLLER, MUTEX_CONTEXT_TWO_SIDED,
+	foreach(int *i, MUTEX_CONTEXT_CONTROLLER, MUTEX_CONTEXT_SOURCE,
 			MUTEX_CONTEXT_TWO_SIDED, MUTEX_CONTEXT_DESTINATION)
 		ap_init_mutex_state(&parser, &ms[*i]);
 
 	/* if no option -F is given, configure all flows*/
-	for (int i = 0; i < MAX_FLOWS_CONTROLLER; i++)
+	for (int i = 0; i < num_flows; i++)
 		current_flow_ids[i] = i;
-	cur_num_flows = MAX_FLOWS_CONTROLLER;
+	cur_num_flows = num_flows;
 
 	/* parse command line */
 	for (int argind = 0; argind < ap_arguments(&parser); argind++) {
@@ -2988,9 +2988,9 @@ static void parse_cmdline(int argc, char *argv[])
 
 				/* all flows */
 				if (optint == -1) {
-					for (int i = 0; i < MAX_FLOWS_CONTROLLER; i++)
+					for (int i = 0; i < num_flows; i++)
 						current_flow_ids[i] = i;
-					cur_num_flows = MAX_FLOWS_CONTROLLER;
+					cur_num_flows = num_flows;
 					break;
 				}
 
@@ -3023,7 +3023,7 @@ static void parse_cmdline(int argc, char *argv[])
 		}
 	}
 
-	if (copt.num_flows <= max_flow_specifier)
+	if ((int)copt.num_flows <= max_flow_specifier)
 		PARSE_ERR("%s", "must not specify option for non-existing flow");
 
 #if 0
@@ -3149,7 +3149,7 @@ int main(int argc, char *argv[])
 	      fclose(fp);
 
 	      if (buffer) {
-		char *buffer_copy = (char *)malloc(sizeof(char) * strlen(buffer));
+		char *buffer_copy = (char *)malloc(sizeof(char) * strlen(buffer) + 1);
 		strcpy(buffer_copy, buffer);
 		int new_argc = 1;
 		char *pch = strtok(buffer, " \n");
@@ -3164,12 +3164,19 @@ int main(int argc, char *argv[])
 		while (pch) {
 		  new_argv[i] = pch;
 		  pch = strtok(NULL, " \n");
+		  i++;
 		}
+		free(buffer);
 		argc = new_argc;
 		argv = new_argv;
 	      }
 	    }
 	  }
+	}
+
+	int num_flows = MAX_FLOWS_CONTROLLER;
+	if (!strcmp(argv[1], "-n")) {
+	  num_flows = atoi(argv[2]);
 	}
 
 	struct sigaction sa;
@@ -3188,8 +3195,8 @@ int main(int argc, char *argv[])
 
 	set_progname(argv[0]);
 	init_controller_options();
-	init_flow_options();
-	parse_cmdline(argc, argv);
+	init_flow_options(num_flows);
+	parse_cmdline(argc, argv, num_flows);
 	sanity_check();
 	open_logfile();
 	prepare_xmlrpc_client(&rpc_client);

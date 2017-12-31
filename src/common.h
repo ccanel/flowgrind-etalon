@@ -55,7 +55,7 @@
 #define DEFAULT_LISTEN_PORT 5999
 
 /** Maximal number of parallel flows supported by one controller. */
-#define MAX_FLOWS_CONTROLLER 2048
+#define MAX_FLOWS_CONTROLLER 262144
 
 /** Maximal number of parallel flows supported by one daemon instance.
   * This is currenty limited by the file descriptor number which can
