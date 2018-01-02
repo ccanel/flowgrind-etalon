@@ -62,13 +62,13 @@
   * be added to an fd_set. As we currently may need up to two FDs per
   * destination, we limit this to half of FD_SETSIZE.
   */
-#define MAX_FLOWS_DAEMON FD_SETSIZE >> 1
+#define MAX_FLOWS_DAEMON EXT_FD_SETSIZE >> 1
 
 /** Max number of arbitrary extra socket options which may sent to the deamon. */
-#define MAX_EXTRA_SOCKET_OPTIONS 10
+#define MAX_EXTRA_SOCKET_OPTIONS 2
 
 /** Ensures extra options are limited in length on both controller and deamon. */
-#define MAX_EXTRA_SOCKET_OPTION_VALUE_LENGTH 100
+#define MAX_EXTRA_SOCKET_OPTION_VALUE_LENGTH 16
 
 #ifndef TCP_CA_NAME_MAX
 /** Max size of the congestion control algorithm specifier string. */
@@ -180,7 +180,7 @@ struct trafgen_options {
  */
 struct flow_settings {
 	/** The interface address for the flow (used by daemon). */
-	char bind_address[1000];
+	char bind_address[64];
 
 	/** Flow ID maintained by controller. */
 	int flow_id;

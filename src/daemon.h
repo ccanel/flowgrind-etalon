@@ -50,6 +50,13 @@
 /** Time select() will block waiting for a file descriptor to become ready. */
 #define DEFAULT_SELECT_TIMEOUT  10000000
 
+#define EXT_FD_SETSIZE 262144
+
+typedef struct
+{
+  long fds_bits[EXT_FD_SETSIZE / 8 / sizeof(long)];
+} ext_fd_set;
+
 enum flow_state_t
 {
 	/* SOURCE */

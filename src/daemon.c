@@ -89,7 +89,7 @@ int daemon_pipe[2];
 pthread_mutex_t mutex;
 struct request *requests = 0, *requests_last = 0;
 
-fd_set rfds, wfds, efds;
+ext_fd_set rfds, wfds, efds;
 int maxfd;
 
 struct report* reports = 0;
@@ -192,7 +192,7 @@ void remove_flow(struct flow * const flow)
 		started = 0;
 }
 
-static void prepare_wfds(struct timespec *now, struct flow *flow, fd_set *wfds)
+static void prepare_wfds(struct timespec *now, struct flow *flow, ext_fd_set *wfds)
 {
 	int rc = 0;
 
@@ -226,7 +226,7 @@ static void prepare_wfds(struct timespec *now, struct flow *flow, fd_set *wfds)
 	return;
 }
 
-static int prepare_rfds(struct timespec *now, struct flow *flow, fd_set *rfds)
+static int prepare_rfds(struct timespec *now, struct flow *flow, ext_fd_set *rfds)
 {
 	int rc = 0;
 
@@ -733,7 +733,7 @@ static void timer_check()
 	DEBUG_MSG(LOG_DEBUG, "finished timer_check()");
 }
 
-static void process_select(fd_set *rfds, fd_set *wfds, fd_set *efds)
+static void process_select(ext_fd_set *rfds, ext_fd_set *wfds, ext_fd_set *efds)
 {
 	const struct list_node *node = fg_list_front(&flows);
 	while (node) {
@@ -824,8 +824,8 @@ void* daemon_main(void* ptr __attribute__((unused)))
 		timeout.tv_nsec = DEFAULT_SELECT_TIMEOUT;
 		DEBUG_MSG(LOG_DEBUG, "calling pselect() need_timeout: %i",
 			  need_timeout);
-		int rc = pselect(maxfd + 1, &rfds, &wfds, &efds,
-				 need_timeout ? &timeout : 0, NULL);
+		int rc = pselect(maxfd + 1, (fd_set*)&rfds, (fd_set*)&wfds,
+				 (fd_set*)&efds, need_timeout ? &timeout : 0, NULL);
 		if (rc < 0) {
 			if (errno == EINTR)
 				continue;

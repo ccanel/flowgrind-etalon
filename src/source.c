@@ -103,7 +103,7 @@ static int name2socket(struct flow *flow, char *server_name, unsigned port, stru
 			continue;
 		/* FIXME: currently we use portable select() API, which
 		 * is limited by the number of bits in an fd_set */
-		if (fd >= FD_SETSIZE) {
+		if (fd >= EXT_FD_SETSIZE) {
 		        logging(LOG_ALERT, "too many file descriptors are"
 				"already in use by this daemon");
 		        flow_error(flow, "failed to create listen socket: too many"

@@ -213,7 +213,7 @@ void add_flow_destination(struct request_add_flow_destination *request)
 	} else {
 		/* FIXME: currently we use portable select() API, which
 		 * is limited by the number of bits in an fd_set */
-		if (flow->listenfd_data >= FD_SETSIZE) {
+		if (flow->listenfd_data >= EXT_FD_SETSIZE) {
 			logging(LOG_ALERT, "failed to add listen socket: "
 				"fd number too high (fd=%u)", flow->listenfd_data);
 			flow_error(flow, "failed to add listen socket: too many"
@@ -266,7 +266,7 @@ int accept_data(struct flow *flow)
 
 	/* FIXME: currently we use portable select() API, which
 	 * is limited by the number of bits in an fd_set */
-	if (flow->fd >= FD_SETSIZE) {
+	if (flow->fd >= EXT_FD_SETSIZE) {
 		logging(LOG_ALERT, "too many file descriptors are "
 			"already in use by this daemon (FD number=%u)", flow->fd);
 		flow_error(flow, "failed to add test connection: too many"

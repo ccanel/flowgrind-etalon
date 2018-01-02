@@ -122,7 +122,7 @@ static struct cflow *cflow;
 static struct arg_parser parser;
 
 /** Number of currently active flows. */
-static unsigned short active_flows = 0;
+static unsigned int active_flows = 0;
 
 /* To cover a gcc bug (http://gcc.gnu.org/bugzilla/show_bug.cgi?id=36446) */
 #pragma GCC diagnostic push
@@ -782,7 +782,7 @@ static void set_flow_endpoint_daemon(const char* server_uuid, char* server_url)
 {
 	/* Determine the daemon in controller flow data by UUID 
 	 * This prevent the daemons duplication */
-	for (unsigned id = 0; id < copt.num_flows; id++) {
+	for (unsigned int id = 0; id < copt.num_flows; id++) {
 		foreach(int *i, SOURCE, DESTINATION) {
 			struct flow_endpoint* e = &cflow[id].endpoint[*i];
 			if(!strcmp(e->rpc_info->server_url, server_url) && !e->daemon) {
@@ -1225,7 +1225,7 @@ static void prepare_flow(int id, xmlrpc_client *rpc_client)
 static void prepare_all_flows(xmlrpc_client *rpc_client)
 {
 	/* prepare flows */
-	for (unsigned short id = 0; id < copt.num_flows; id++) {
+	for (unsigned int id = 0; id < copt.num_flows; id++) {
 		if (sigint_caught)
 			return;
 		prepare_flow(id, rpc_client);
@@ -1493,7 +1493,7 @@ has_more_reports:
 static void report_flow(struct report* report)
 {
 	int *i = NULL;
-	unsigned short id;
+	unsigned int id;
 	struct cflow *f = NULL;
 
 	/* Get matching flow for report */
@@ -1546,7 +1546,7 @@ static void close_all_flows(void)
 	xmlrpc_env env;
 	xmlrpc_client *client;
 
-	for (unsigned short id = 0; id < copt.num_flows; id++) {
+	for (unsigned int id = 0; id < copt.num_flows; id++) {
 		DEBUG_MSG(LOG_WARNING, "closing flow %u", id);
 
 		if (cflow[id].finished[SOURCE] && cflow[id].finished[DESTINATION])
@@ -2181,7 +2181,7 @@ out:
  */
 static void print_all_final_reports(void)
 {
-	for (unsigned id = 0; id < copt.num_flows; id++) {
+	for (unsigned int id = 0; id < copt.num_flows; id++) {
 		print_output("\n");
 		foreach(int *i, SOURCE, DESTINATION) {
 			print_final_report(id, *i);
@@ -3054,7 +3054,7 @@ static void parse_cmdline(int argc, char *argv[], int num_flows)
 	}
 #endif /* 0 */
 
-	for (unsigned short id = 0; id < copt.num_flows; id++) {
+	for (unsigned int id = 0; id < copt.num_flows; id++) {
 		cflow[id].settings[SOURCE].duration[READ] = cflow[id].settings[DESTINATION].duration[WRITE];
 		cflow[id].settings[DESTINATION].duration[READ] = cflow[id].settings[SOURCE].duration[WRITE];
 		cflow[id].settings[SOURCE].delay[READ] = cflow[id].settings[DESTINATION].delay[WRITE];
@@ -3079,7 +3079,7 @@ static void parse_cmdline(int argc, char *argv[], int num_flows)
  */
 static void sanity_check(void)
 {
-	for (unsigned short id = 0; id < copt.num_flows; id++) {
+	for (unsigned int id = 0; id < copt.num_flows; id++) {
 		DEBUG_MSG(LOG_DEBUG, "sanity checking parameter set of flow %d", id);
 		if (cflow[id].settings[DESTINATION].duration[WRITE] > 0 &&
 		    cflow[id].late_connect &&

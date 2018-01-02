@@ -214,7 +214,7 @@ struct daemon {
 /** Infos about a flowgrind daemon and daemon-controller connection. */
 struct rpc_info {
 	/** XMLRPC URL for this daemon. */
-	char server_url[1000];
+	char server_url[64];
 	/** Name of the XMLRPC server. */
 	char server_name[257];
 	/** Port of the XMLRPC server. */
@@ -232,7 +232,7 @@ struct flow_endpoint {
 	/** Pointer to manage flow endpoint daemon. */
 	struct daemon* daemon;
 	/** network address where the actual test connection goes to. */
-	char test_address[1000];
+	char test_address[64];
 };
 
 /** Infos about the flow including flow options */
