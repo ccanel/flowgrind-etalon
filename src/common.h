@@ -62,7 +62,7 @@
   * be added to an fd_set. As we currently may need up to two FDs per
   * destination, we limit this to half of FD_SETSIZE.
   */
-#define MAX_FLOWS_DAEMON EXT_FD_SETSIZE >> 1
+#define MAX_FLOWS_DAEMON 4096
 
 /** Max number of arbitrary extra socket options which may sent to the deamon. */
 #define MAX_EXTRA_SOCKET_OPTIONS 2

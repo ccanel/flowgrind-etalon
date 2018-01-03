@@ -69,6 +69,7 @@
 #include "source.h"
 #include "destination.h"
 #include "trafgen.h"
+#include <poll.h>
 
 #ifdef HAVE_LIBPCAP
 #include "fg_pcap.h"
@@ -89,7 +90,7 @@ int daemon_pipe[2];
 pthread_mutex_t mutex;
 struct request *requests = 0, *requests_last = 0;
 
-ext_fd_set rfds, wfds, efds;
+struct pollfd poll_fds[MAX_FLOWS_DAEMON];
 int maxfd;
 
 struct report* reports = 0;
@@ -111,6 +112,14 @@ static void send_response(struct flow* flow,
 			  int requested_response_block_size);
 int get_tcp_info(struct flow *flow, struct fg_tcp_info *info);
 
+
+void poll_fd_zero() {
+  for(int i = 0; i < MAX_FLOWS_DAEMON; i++) {
+    poll_fds[i].fd = -1;
+    poll_fds[i].events = 0;
+    poll_fds[i].revents = 0;
+  }
+}
 
 void flow_error(struct flow *flow, const char *fmt, ...)
 {
@@ -192,7 +201,7 @@ void remove_flow(struct flow * const flow)
 		started = 0;
 }
 
-static void prepare_wfds(struct timespec *now, struct flow *flow, ext_fd_set *wfds)
+static void prepare_wfds(struct timespec *now, struct flow *flow)
 {
 	int rc = 0;
 
@@ -207,7 +216,8 @@ static void prepare_wfds(struct timespec *now, struct flow *flow, ext_fd_set *wf
 		if (flow_block_scheduled(now, flow)) {
 			DEBUG_MSG(LOG_DEBUG, "adding sock of flow %d to wfds",
 				  flow->id);
-			FD_SET(flow->fd, wfds);
+			poll_fds[flow->fd].fd = flow->fd;
+			poll_fds[flow->fd].events |= POLLOUT;
 		} else {
 			DEBUG_MSG(LOG_DEBUG, "no block for flow %d scheduled "
 				  "yet", flow->id);
@@ -226,7 +236,7 @@ static void prepare_wfds(struct timespec *now, struct flow *flow, ext_fd_set *wf
 	return;
 }
 
-static int prepare_rfds(struct timespec *now, struct flow *flow, ext_fd_set *rfds)
+static int prepare_rfds(struct timespec *now, struct flow *flow)
 {
 	int rc = 0;
 
@@ -254,7 +264,8 @@ static int prepare_rfds(struct timespec *now, struct flow *flow, ext_fd_set *rfd
 	if (flow->connect_called && !flow->finished[READ]) {
 		DEBUG_MSG(LOG_DEBUG, "adding sock of flow %d to rfds",
 			  flow->id);
-		FD_SET(flow->fd, rfds);
+		poll_fds[flow->fd].fd = flow->fd;
+		poll_fds[flow->fd].events |= POLLIN;
 	}
 
 	return 0;
@@ -265,11 +276,10 @@ static int prepare_fds() {
 	DEBUG_MSG(LOG_DEBUG, "prepare_fds() called, number of flows: %zu",
 		  fg_list_size(&flows));
 
-	FD_ZERO(&rfds);
-	FD_ZERO(&wfds);
-	FD_ZERO(&efds);
+	poll_fd_zero();
 
-	FD_SET(daemon_pipe[0], &rfds);
+	poll_fds[daemon_pipe[0]].fd = daemon_pipe[0];
+	poll_fds[daemon_pipe[0]].events = POLLIN;
 	maxfd = daemon_pipe[0];
 
 	struct timespec now;
@@ -308,7 +318,8 @@ static int prepare_fds() {
 
 		if (flow->state == GRIND_WAIT_ACCEPT &&
 		    flow->listenfd_data != -1) {
-			FD_SET(flow->listenfd_data, &rfds);
+		        poll_fds[flow->listenfd_data].fd = flow->listenfd_data;
+			poll_fds[flow->listenfd_data].events = POLLIN;
 			maxfd = MAX(maxfd, flow->listenfd_data);
 		}
 
@@ -316,10 +327,9 @@ static int prepare_fds() {
 			continue;
 
 		if (flow->fd != -1) {
-			FD_SET(flow->fd, &efds);
 			maxfd = MAX(maxfd, flow->fd);
-			prepare_wfds(&now, flow, &wfds);
-			prepare_rfds(&now, flow, &rfds);
+			prepare_wfds(&now, flow);
+			prepare_rfds(&now, flow);
 		}
 	}
 
@@ -733,7 +743,7 @@ static void timer_check()
 	DEBUG_MSG(LOG_DEBUG, "finished timer_check()");
 }
 
-static void process_select(ext_fd_set *rfds, ext_fd_set *wfds, ext_fd_set *efds)
+static void process_select()
 {
 	const struct list_node *node = fg_list_front(&flows);
 	while (node) {
@@ -744,7 +754,7 @@ static void process_select(ext_fd_set *rfds, ext_fd_set *wfds, ext_fd_set *efds)
 			  flow->id);
 
 		if (flow->listenfd_data != -1 &&
-		    FD_ISSET(flow->listenfd_data, rfds)) {
+		    (poll_fds[flow->listenfd_data].revents & POLLIN)) {
 			DEBUG_MSG(LOG_DEBUG, "ready for accept");
 			if (flow->state == GRIND_WAIT_ACCEPT) {
 				if (accept_data(flow) == -1) {
@@ -756,7 +766,7 @@ static void process_select(ext_fd_set *rfds, ext_fd_set *wfds, ext_fd_set *efds)
 		}
 
 		if (flow->fd != -1) {
-			if (FD_ISSET(flow->fd, efds)) {
+                        if (poll_fds[flow->fd].revents & POLLERR) {
 				int error_number, rc;
 				socklen_t error_number_size =
 					sizeof(error_number);
@@ -776,7 +786,7 @@ static void process_select(ext_fd_set *rfds, ext_fd_set *wfds, ext_fd_set *efds)
 					goto remove;
 				}
 			}
-			if (FD_ISSET(flow->fd, wfds))
+			if (poll_fds[flow->fd].revents & POLLOUT)
 			  if (!flow->settings.total_blocks[flow->endpoint] ||
 			      flow->total_blocks_written[flow->endpoint] <
 			      flow->settings.total_blocks[flow->endpoint]) {
@@ -792,7 +802,7 @@ static void process_select(ext_fd_set *rfds, ext_fd_set *wfds, ext_fd_set *efds)
 			/*   goto remove; */
 			/* } */
 
-			if (FD_ISSET(flow->fd, rfds))
+			if (poll_fds[flow->fd].revents & POLLIN)
 				if (read_data(flow) == -1) {
 					DEBUG_MSG(LOG_ERR, "read_data() failed");
 					goto remove;
@@ -824,8 +834,9 @@ void* daemon_main(void* ptr __attribute__((unused)))
 		timeout.tv_nsec = DEFAULT_SELECT_TIMEOUT;
 		DEBUG_MSG(LOG_DEBUG, "calling pselect() need_timeout: %i",
 			  need_timeout);
-		int rc = pselect(maxfd + 1, (fd_set*)&rfds, (fd_set*)&wfds,
-				 (fd_set*)&efds, need_timeout ? &timeout : 0, NULL);
+
+		int rc = ppoll(poll_fds, maxfd + 1,
+			       need_timeout ? &timeout : 0, NULL);
 		if (rc < 0) {
 			if (errno == EINTR)
 				continue;
@@ -833,11 +844,11 @@ void* daemon_main(void* ptr __attribute__((unused)))
 		}
 		DEBUG_MSG(LOG_DEBUG, "pselect() finished");
 
-		if (FD_ISSET(daemon_pipe[0], &rfds))
+		if (poll_fds[daemon_pipe[0]].revents & POLLIN)
 			process_requests();
 
 		timer_check();
-		process_select(&rfds, &wfds, &efds);
+		process_select();
 	}
 }
 
