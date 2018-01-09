@@ -378,6 +378,11 @@ static void start_flows(struct request_start_flows *request)
 		flow->first_report_time = flow->last_report_time;
 		flow->next_report_time = flow->last_report_time;
 
+		flow->last_block_read.tv_sec = 0;
+		flow->last_block_read.tv_nsec = 0;
+		flow->last_block_written.tv_sec = 0;
+		flow->last_block_written.tv_nsec = 0;
+
 		time_add(&flow->next_report_time,
 			 flow->settings.reporting_interval);
 	}
