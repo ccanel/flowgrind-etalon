@@ -2064,6 +2064,9 @@ static void print_final_report(unsigned short flow_id, enum endpoint_t e)
 
 	/* Calculate time */
 	double report_time = time_diff(&report->begin, &report->end);
+	if (report_time < 0.0) {
+	  printf("REPORT TIME LESS THAN ZERO = %f\n", report_time);
+	}
 	double delta_write = 0.0, delta_read = 0.0;
 	if (settings->duration[WRITE])
 		delta_write = report_time - settings->duration[WRITE]
@@ -2075,14 +2078,18 @@ static void print_final_report(unsigned short flow_id, enum endpoint_t e)
 	/* Calculate delta target vs. real report time */
 	double real_write = settings->duration[WRITE] + delta_write;
 	double real_read = settings->duration[READ] + delta_read;
+	if (real_write < 0) {
+	  printf("real_write less than zero. report_time = %f, delta_write = %f, duration = %f, delsy = %f, real_write = %f\n",
+		 report_time, delta_write, settings->duration[WRITE], settings->delay[SOURCE], real_write);
+	}
 	if (settings->duration[WRITE])
 		asprintf_append(&buf, "duration = %.9f/%.9f [s] (real/req), ",
 				real_write, settings->duration[WRITE]);
 	if (settings->delay[WRITE])
-		asprintf_append(&buf, "write delay = %.3f [s], ",
+		asprintf_append(&buf, "write delay = %.9f [s], ",
 				settings->delay[WRITE]);
 	if (settings->delay[READ])
-		asprintf_append(&buf, "read delay = %.3f [s], ",
+		asprintf_append(&buf, "read delay = %.9f [s], ",
 				settings->delay[READ]);
 
 	/* Throughput */
