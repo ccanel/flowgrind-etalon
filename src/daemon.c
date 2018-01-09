@@ -374,7 +374,8 @@ static void start_flows(struct request_start_flows *request)
 		flow->next_write_block_timestamp =
 			flow->start_timestamp[WRITE];
 
-		gettime(&flow->last_report_time);
+		/* gettime(&flow->last_report_time); */
+		flow->last_report_time = start;
 		flow->first_report_time = flow->last_report_time;
 		flow->next_report_time = flow->last_report_time;
 
