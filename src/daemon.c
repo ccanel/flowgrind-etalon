@@ -801,12 +801,6 @@ static void process_select()
 					goto remove;
 				}
 			  }
-			/* if (flow->settings.total_blocks[flow->endpoint] && */
-			/*     flow->total_blocks_written[flow->endpoint] >= */
-			/*     flow->settings.total_blocks[flow->endpoint]) { */
-			/*   logging(LOG_NOTICE, "sent all requested blocks\n"); */
-			/*   goto remove; */
-			/* } */
 
 			if (poll_fds[flow->fd].revents & POLLIN)
 				if (read_data(flow) == -1) {
@@ -840,7 +834,6 @@ void* daemon_main(void* ptr __attribute__((unused)))
 		timeout.tv_nsec = DEFAULT_SELECT_TIMEOUT;
 		DEBUG_MSG(LOG_DEBUG, "calling pselect() need_timeout: %i",
 			  need_timeout);
-
 		int rc = ppoll(poll_fds, maxfd + 1,
 			       need_timeout ? &timeout : 0, NULL);
 		if (rc < 0) {
