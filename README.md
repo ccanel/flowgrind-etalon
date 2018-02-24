@@ -11,6 +11,19 @@ Flowgrind is an advanced TCP traffic generator for testing and benchmarking **Li
 * API documentation: [Doxygen](http://www.flowgrind.net/doxygen/index.html)
 
 
+Etalon Changes
+==============
+
+We make a few changes to scale flowgrind for use with Etalon. Mainly, our
+changes involve greatly increasing the limits that both a flowgrind controller
+and a flowgrind daemon can process. This required modifying the controller to
+take in a configuration file of flows, rather than a list from the command
+line. For the daemon, it required replacing select with poll. Additionally, we
+allow the stop criteria for flows to be a number of bytes rather than just a
+time. For specific changes see this [comparison
+page](https://github.com/mukerjee/flowgrind-etalon/compare).
+
+
 What It Can Do?
 ===============
 
