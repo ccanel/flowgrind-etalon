@@ -127,7 +127,7 @@ static int create_listen_socket(struct flow *flow, char *bind_addr,
 	if (flow->settings.cc_alg)
 		set_congestion_control(fd, flow->settings.cc_alg);
 
-	if (listen(fd, 0) < 0) {
+	if (listen(fd, 2048) < 0) {
 		logging(LOG_ALERT, "listen failed: %s", strerror(errno));
 		flow_error(flow, "listen failed: %s", strerror(errno));
 		return -1;
