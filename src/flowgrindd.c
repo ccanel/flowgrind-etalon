@@ -390,10 +390,7 @@ int main(int argc, char *argv[])
 	sanity_check();
 
 	/* Initialize logging */
-	if (!ap_is_used(&parser, 'd'))
-		init_logging(LOGGING_SYSLOG);
-	else
-		init_logging(LOGGING_STDERR);
+        init_logging(LOGGING_SYSLOG);
 
 	fg_list_init(&flows);
 
